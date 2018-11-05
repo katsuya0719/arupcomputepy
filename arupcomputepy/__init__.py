@@ -1,6 +1,5 @@
 from requests import Request, Session
 import json
-import asyncio
 from requests_futures.sessions import FuturesSession
 from concurrent.futures import ThreadPoolExecutor
 

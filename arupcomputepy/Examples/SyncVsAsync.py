@@ -1,4 +1,4 @@
-import ArupCompute
+import arupcomputepy
 import time
 
 library = 'designcheck'
@@ -17,17 +17,17 @@ variables = {
 
 start = time.time()
 
-number = 100
+number = 1
 print('Number of calculations: ' + str(number))
 
 # Prepare requests
 requests = []
 for x in range (0, number):
-    request = ArupCompute.PrepareInputs(library, calculation, variables)
+    request = arupcomputepy.PrepareInputs(library, calculation, variables)
     requests.append(request)
 
 print('Sync')
-responses = ArupCompute.ExecuteCalculationsSync(requests, useArupProxy=True)
+responses = arupcomputepy.ExecuteCalculationsSync(requests, useArupProxy=True)
 
 #print(responses)
 
@@ -37,7 +37,7 @@ print('Total time: ' + str(duration))
 print('Avg. time: ' + str(duration * 1000 / number) + 'ms')
 
 print('ASync')
-responses = ArupCompute.ExecuteCalculationsAsync(requests, useArupProxy=True)
+responses = arupcomputepy.ExecuteCalculationsAsync(requests, useArupProxy=True)
 
 #print(responses)
 
