@@ -12,11 +12,10 @@ This will install the latest version of arupcomputepy, run the command again to 
 
 To check that arupcomputepy has installed correctly and is running try running:
 
-`
+```python
 import arupcomputepy
-
 arupcomputepy.test()
-`
+```
 
 The expected outcome is
 

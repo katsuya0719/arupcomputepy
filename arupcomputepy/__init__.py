@@ -13,10 +13,15 @@ def PrepareInputs(library, calculation, variables):
     Keyword arguments:
         library -- ArupCompute library to use (as string) e.g. 'designcheck'
         calculation -- ArupCompute calculation to run (as string, formatted as per ArupCompute website URL) e.g. 'structural/concrete/ns_3473/constructionjointcapacity'
-        variables -- Dictionary of variables to feed key = variable name, value = value to run (names and formatting as per ArupCompute URL)
+        variables -- Dictionary of variables to feed key = variable name, value = value to run (names and formatting as per ArupCompute URL). All required data types can be handled for example:
+            variables = {}
+            variables['alpha'] = 12.7
+            variables['underground'] = False
+            variables['mode'] = 'Special'
+            variables['layers'] = [65,90,150]
 
     Returns:
-        Request URL
+        request object ready for execution (use arupcomputepy.ExecuteCalculations)
     '''
     
     root = r'https://arupcompute-dev.azurewebsites.net/api' #dev website does not have troublesome Microsoft authentication enabled - temporary solution only
@@ -26,6 +31,19 @@ def PrepareInputs(library, calculation, variables):
     return req
 
 def ExecuteCalculationsSync(requests, useArupProxy=False, timeout=10):
+    '''
+    Executes a list of previously prepared calculations via ArupCompute.
+    Operates in a synchronous manner, but has less overhead than ExecuteCalculationsAsync.
+
+    Keyword arguments:
+        requests - list of request objects (prepare using PrepareInputs)
+        useArupProxy - try and use False initially, otherwise True may be required
+        timeout - how long to wait for a server response before failing
+
+    Returns:
+        JSON server response converted into python objects using the command json.loads()
+    '''
+    
     proxyDict = {
         "http": "http://proxy.ha.arup.com:80",
         "https": "https://proxy.ha.arup.com:80"
@@ -46,6 +64,19 @@ def ExecuteCalculationsSync(requests, useArupProxy=False, timeout=10):
 
 
 def ExecuteCalculationsAsync(requests, useArupProxy=False, timeout=10, max_workers=None):
+    '''
+    Executes a list of previously prepared calculations via ArupCompute.
+    Operates in an asynchronous manner, but has more overhead than ExecuteCalculationsSync.
+
+    Keyword arguments:
+        requests - list of request objects (prepare using PrepareInputs)
+        useArupProxy - try and use False initially, otherwise True may be required
+        timeout - how long to wait for a server response before failing
+        max_workers - number of threads to use, defaults to 5 x no. of processors assuming IO bound
+
+    Returns:
+        JSON server response converted into python objects using the command json.loads()
+    '''
 
     proxyDict = {
         "http": "http://proxy.ha.arup.com:80",
