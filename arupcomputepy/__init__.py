@@ -21,8 +21,9 @@ def PrepareInputs(library, calculation, variables):
     
     root = r'https://arupcompute-dev.azurewebsites.net/api' #dev website does not have troublesome Microsoft authentication enabled - temporary solution only
 
-    req = Request('GET', '/'.join([root,library,calculation]), params=variables).prepare()
-    return req.url
+    req = Request('POST', '/'.join([root,library,calculation]), json=variables).prepare()
+    
+    return req
 
 def ExecuteCalculationsSync(requests, useArupProxy=False, timeout=10):
     proxyDict = {
@@ -35,11 +36,11 @@ def ExecuteCalculationsSync(requests, useArupProxy=False, timeout=10):
     contents = []
     for request in requests:
         if useArupProxy:
-            r = session.get(request, proxies=proxyDict, timeout=timeout)
+            r = session.send(request, proxies=proxyDict, timeout=timeout)
         else:
-            r = session.get(request, timeout=timeout)
+            r = session.send(request, timeout=timeout)
 
-        contents.append(r.json())
+        contents.append(json.loads(r.content))
 
     return contents
 
@@ -57,14 +58,16 @@ def ExecuteCalculationsAsync(requests, useArupProxy=False, timeout=10, max_worke
     for request in requests:
         
         if useArupProxy:
-            future = session.get(request, proxies=proxyDict, timeout=timeout)
+            future = session.send(request, proxies=proxyDict, timeout=timeout)
         else:
-            future = session.get(request, timeout=timeout)
+            future = session.send(request, timeout=timeout)
         futures.append(future)
 
     contents = []
     for future in futures:
-        response = future.result()
-        contents.append(response.content)
+        contents.append(json.loads(future.content))
 
     return contents
+
+def test():
+    print('arupcomputepy has installed correctly')
