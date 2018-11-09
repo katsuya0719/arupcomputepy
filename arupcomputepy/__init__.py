@@ -3,7 +3,7 @@ import json
 from requests_futures.sessions import FuturesSession
 from concurrent.futures import ThreadPoolExecutor
 
-def PrepareInputs(library, calculation, variables):
+def PrepareInputs(library, calculation, variables=None):
     '''
     Prepares a single calculation for execution via ArupCompute.
 
@@ -23,6 +23,11 @@ def PrepareInputs(library, calculation, variables):
     Returns:
         request object ready for execution (use arupcomputepy.ExecuteCalculations)
     '''
+
+    if variables is None: #None may be possible for a calculation that takes no inputs e.g. random number generator
+        variables = {}
+    
+    variables['client'] = 'arupcomputepy' #Tag API calls stating that they came from the python library, only tracked on main branch
     
     root = r'https://arupcompute-dev.azurewebsites.net/api' #dev website does not have troublesome Microsoft authentication enabled - temporary solution only
 
