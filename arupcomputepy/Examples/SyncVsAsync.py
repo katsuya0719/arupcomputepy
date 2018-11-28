@@ -2,7 +2,7 @@ import arupcomputepy
 import time
 
 library = 'designcheck'
-calculation = 'structural/concrete/ns_3473/constructionjointcapacity'
+calculation = 'structural/concrete/ns_3473/constructionjointcapacity_6fd66'
 
 variables = {
     'tau_cd': 0.0,

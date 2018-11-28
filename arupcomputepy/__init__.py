@@ -63,6 +63,11 @@ def ExecuteCalculationsSync(requests, useArupProxy=False, timeout=10):
         else:
             r = session.send(request, timeout=timeout)
 
+        r.raise_for_status() # check for failed responses e.g. 400
+
+        if '<title>Sign in to your account</title>' in r.content:
+            raise SystemError('ArupCompute servers blocked to naive python access. Contact Matteo Cominetti to request that access be reopened.')
+        
         contents.append(json.loads(r.content))
 
     return contents
@@ -101,6 +106,11 @@ def ExecuteCalculationsAsync(requests, useArupProxy=False, timeout=10, max_worke
 
     contents = []
     for future in futures:
+        future.raise_for_status() # check for failed responses e.g. 400
+
+        if '<title>Sign in to your account</title>' in future.content:
+            raise SystemError('ArupCompute servers blocked to naive python access. Contact Matteo Cominetti to request that access be reopened.')
+
         contents.append(json.loads(future.content))
 
     return contents
