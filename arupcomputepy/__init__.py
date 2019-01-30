@@ -4,15 +4,12 @@ import adal
 import appdirs
 import os
 
-def ComputeURL(url, variables=None, useArupProxy=False, timeout=10):
+def ComputeURL(url, variables=None, useArupProxy=False, timeout=10, client='arupcomputepy'):
     if variables is None: # None may be possible for a calculation that takes no inputs e.g. random number generator
         variables = {}
     
-    if 'client' not in variables:
-        variables['client'] = 'arupcomputepy' # Tag API calls stating that they came from the python library, can be overridden if required (e.g by designcheckpy)
-    
     root = r'https://compute.arup.digital/api'
-    url = root + '/' + url
+    url = root + '/' + url + '?client=' + client # Tag API calls stating that they came from the python library, can be overridden if we want to collect different data
     accessToken = AcquireToken()
     
     try:
@@ -23,7 +20,7 @@ def ComputeURL(url, variables=None, useArupProxy=False, timeout=10):
     accessToken = AcquireNewAccessToken()
     return MakeRequest(url, variables, timeout, accessToken, useArupProxy=useArupProxy)
 
-def Compute(library, calculation, variables=None, useArupProxy=False, timeout=10):
+def Compute(library, calculation, variables=None, useArupProxy=False, timeout=10, client='arupcomputepy'):
     '''
     Sends calculation(s) to the ArupCompute server for execution and returns the result.
 
@@ -45,7 +42,7 @@ def Compute(library, calculation, variables=None, useArupProxy=False, timeout=10
         server response as JSON
     '''
     url = '/'.join([library,calculation])
-    return ComputeURL(url, variables=variables, useArupProxy=useArupProxy, timeout=timeout)
+    return ComputeURL(url, variables=variables, useArupProxy=useArupProxy, timeout=timeout, client=client)
 
 def MakeRequest(url, variables, timeout, accessToken, useArupProxy=False):
     headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer %s' % accessToken}
