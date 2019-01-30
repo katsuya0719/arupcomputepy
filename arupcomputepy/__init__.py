@@ -1,14 +1,14 @@
-from requests import Request, Session
+import requests
 import json
-from requests_futures.sessions import FuturesSession
-from concurrent.futures import ThreadPoolExecutor
+import adal
+import appdirs
+import os
 
-def PrepareInputs(library, calculation, variables=None):
+def Compute(library, calculation, variables=None, useArupProxy=False, timeout=10):
     '''
-    Prepares a single calculation for execution via ArupCompute.
+    Sends calculation(s) to the ArupCompute server for execution and returns the result.
 
-    Useful when running multiple checks as it allows asynchronous execution which is significantly faster than serial execution
-    when communicating with a remote cloud computing service.
+    First time running will require the creation of an Azure access token. This will be guided via the console. Alternatively execute the 'AcquireAccessToken' function.
 
     Keyword arguments:
         library -- ArupCompute library to use (as string) e.g. 'designcheck'
@@ -19,101 +19,94 @@ def PrepareInputs(library, calculation, variables=None):
             variables['underground'] = False
             variables['mode'] = 'Special'
             variables['layers'] = [65,90,150]
+        useArupProxy - try and use False initially, otherwise True may be required
+        timeout - how long to wait for a server response before failing
 
     Returns:
         request object ready for execution (use arupcomputepy.ExecuteCalculations)
     '''
-
-    if variables is None: #None may be possible for a calculation that takes no inputs e.g. random number generator
+    
+    if variables is None: # None may be possible for a calculation that takes no inputs e.g. random number generator
         variables = {}
     
-    variables['client'] = 'arupcomputepy' #Tag API calls stating that they came from the python library, only tracked on main branch
+    if 'client' not in variables:
+        variables['client'] = 'arupcomputepy' # Tag API calls stating that they came from the python library, can be overridden if required (e.g by designcheckpy)
     
-    root = r'https://arupcompute-dev.azurewebsites.net/api' #dev website does not have troublesome Microsoft authentication enabled - temporary solution only
+    root = r'https://compute.arup.digital/api'
+    url = '/'.join([root,library,calculation])
 
-    req = Request('POST', '/'.join([root,library,calculation]), json=variables).prepare()
+    accessToken = AcquireToken()
     
-    return req
+    try:
+        return MakeRequest(url, variables, timeout, accessToken, useArupProxy=useArupProxy)
+    except:
+        pass # most likely a token error, try again with a new one before falling over
 
-def ExecuteCalculationsSync(requests, useArupProxy=False, timeout=10):
-    '''
-    Executes a list of previously prepared calculations via ArupCompute.
-    Operates in a synchronous manner, but has less overhead than ExecuteCalculationsAsync.
+    accessToken = AcquireNewAccessToken()
+    return MakeRequest(url, variables, timeout, accessToken, useArupProxy=useArupProxy)
 
-    Keyword arguments:
-        requests - list of request objects (prepare using PrepareInputs)
-        useArupProxy - try and use False initially, otherwise True may be required
-        timeout - how long to wait for a server response before failing
-
-    Returns:
-        JSON server response converted into python objects using the command json.loads()
-    '''
+def MakeRequest(url, variables, timeout, accessToken, useArupProxy=False):
+    headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer %s' % accessToken}
     
-    proxyDict = {
-        "http": "http://proxy.ha.arup.com:80",
-        "https": "https://proxy.ha.arup.com:80"
-    }
+    if useArupProxy:
 
-    session = Session()
+        proxyDict = {
+            "http": "http://proxy.ha.arup.com:80",
+            "https": "https://proxy.ha.arup.com:80"
+        }
 
-    contents = []
-    for request in requests:
-        if useArupProxy:
-            r = session.send(request, proxies=proxyDict, timeout=timeout)
-        else:
-            r = session.send(request, timeout=timeout)
+        r = requests.post(url, json=variables, headers=headers, timeout=timeout, proxies=proxyDict)
 
-        r.raise_for_status() # check for failed responses e.g. 400
+    else:
+        r = requests.post(url, json=variables, headers=headers, timeout=timeout)
 
-        if '<title>Sign in to your account</title>'.encode('utf-8') in r.content:
-            raise SystemError('ArupCompute servers blocked to naive python access. Contact Matteo Cominetti to request that access be reopened.')
-        
-        contents.append(json.loads(r.content))
+    r.raise_for_status() # check for failed responses e.g. 400
 
-    return contents
-
-
-def ExecuteCalculationsAsync(requests, useArupProxy=False, timeout=10, max_workers=None):
-    '''
-    Executes a list of previously prepared calculations via ArupCompute.
-    Operates in an asynchronous manner, but has more overhead than ExecuteCalculationsSync.
-
-    Keyword arguments:
-        requests - list of request objects (prepare using PrepareInputs)
-        useArupProxy - try and use False initially, otherwise True may be required
-        timeout - how long to wait for a server response before failing
-        max_workers - number of threads to use, defaults to 5 x no. of processors assuming IO bound
-
-    Returns:
-        JSON server response converted into python objects using the command json.loads()
-    '''
-
-    proxyDict = {
-        "http": "http://proxy.ha.arup.com:80",
-        "https": "https://proxy.ha.arup.com:80"
-    }
+    if '<title>Sign in to your account</title>'.encode('utf-8') in r.content:
+        raise SystemError('ArupCompute servers blocked to python access. Contact Matteo Cominetti to request that access be reopened.')
     
-    session = FuturesSession(executor=ThreadPoolExecutor(max_workers=max_workers))
+    return json.loads(r.content)
 
-    futures = []
-    for request in requests:
-        
-        if useArupProxy:
-            future = session.send(request, proxies=proxyDict, timeout=timeout)
-        else:
-            future = session.send(request, timeout=timeout)
-        futures.append(future)
+def AcquireToken():
+    userDataDir = appdirs.user_data_dir('arupcomputepy','arupcompute')
+    refreshTokenPath = os.path.join(userDataDir,'refreshToken.txt')
 
-    contents = []
-    for future in futures:
-        future.raise_for_status() # check for failed responses e.g. 400
+    if os.path.isfile(refreshTokenPath):
+        with open(refreshTokenPath) as f:
+            refreshToken = f.read().rstrip()
+        return AcquireNewAccessToken(refreshToken=refreshToken)
+    else:
+        return AcquireNewAccessToken()
 
-        if '<title>Sign in to your account</title>'.encode('utf-8') in future.content:
-            raise SystemError('ArupCompute servers blocked to naive python access. Contact Matteo Cominetti to request that access be reopened.')
+def AcquireNewAccessToken(refreshToken=None):
 
-        contents.append(json.loads(future.content))
+    authorityHostUrl = 'https://login.windows.net/'
+    tenant = 'arup.onmicrosoft.com'
+    resource = 'cd7cf9f0-b6a0-4cf0-a363-a023d9e2595d'
+    clientId = '765d8aec-a87c-4d7d-be95-b3456ef8b732'
+    authority_url = authorityHostUrl + '/' + tenant
 
-    return contents
+    context = adal.AuthenticationContext(
+    authority_url, validate_authority=tenant != 'adfs',
+    )
+
+    if refreshToken == None:
+        code = context.acquire_user_code(resource, clientId)
+        print(code['message']) # there is a risk that if the user cannot see this the program will hang indefinitely
+        response = context.acquire_token_with_device_code(resource, code, clientId)
+    else:
+        response = context.acquire_token_with_refresh_token(refreshToken, clientId, resource)
+
+    # Save the refresh token for next time
+    refreshToken = response['refreshToken']
+    userDataDir = appdirs.user_data_dir('arupcomputepy','arupcompute')
+    refreshTokenPath = os.path.join(userDataDir,'refreshToken.txt')
+    if not os.path.exists(userDataDir):
+        os.makedirs(userDataDir)
+    with open(refreshTokenPath, 'w') as f:
+        f.write(refreshToken)
+
+    return response['accessToken']
 
 def test():
     print('arupcomputepy has installed correctly')
