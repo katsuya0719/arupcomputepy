@@ -4,6 +4,25 @@ import adal
 import appdirs
 import os
 
+def ComputeURL(url, variables=None, useArupProxy=False, timeout=10):
+    if variables is None: # None may be possible for a calculation that takes no inputs e.g. random number generator
+        variables = {}
+    
+    if 'client' not in variables:
+        variables['client'] = 'arupcomputepy' # Tag API calls stating that they came from the python library, can be overridden if required (e.g by designcheckpy)
+    
+    root = r'https://compute.arup.digital/api'
+    url = root + '/' + url
+    accessToken = AcquireToken()
+    
+    try:
+        return MakeRequest(url, variables, timeout, accessToken, useArupProxy=useArupProxy)
+    except:
+        pass # most likely a token error, try again with a new one before falling over
+
+    accessToken = AcquireNewAccessToken()
+    return MakeRequest(url, variables, timeout, accessToken, useArupProxy=useArupProxy)
+
 def Compute(library, calculation, variables=None, useArupProxy=False, timeout=10):
     '''
     Sends calculation(s) to the ArupCompute server for execution and returns the result.
@@ -23,27 +42,10 @@ def Compute(library, calculation, variables=None, useArupProxy=False, timeout=10
         timeout - how long to wait for a server response before failing
 
     Returns:
-        request object ready for execution (use arupcomputepy.ExecuteCalculations)
+        server response as JSON
     '''
-    
-    if variables is None: # None may be possible for a calculation that takes no inputs e.g. random number generator
-        variables = {}
-    
-    if 'client' not in variables:
-        variables['client'] = 'arupcomputepy' # Tag API calls stating that they came from the python library, can be overridden if required (e.g by designcheckpy)
-    
-    root = r'https://compute.arup.digital/api'
-    url = '/'.join([root,library,calculation])
-
-    accessToken = AcquireToken()
-    
-    try:
-        return MakeRequest(url, variables, timeout, accessToken, useArupProxy=useArupProxy)
-    except:
-        pass # most likely a token error, try again with a new one before falling over
-
-    accessToken = AcquireNewAccessToken()
-    return MakeRequest(url, variables, timeout, accessToken, useArupProxy=useArupProxy)
+    url = '/'.join([library,calculation])
+    return ComputeURL(url, variables=variables, useArupProxy=useArupProxy, timeout=timeout)
 
 def MakeRequest(url, variables, timeout, accessToken, useArupProxy=False):
     headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer %s' % accessToken}
