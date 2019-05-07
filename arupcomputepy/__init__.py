@@ -1,8 +1,9 @@
 import requests
 import json
-import adal
+import msal
 import appdirs
 import os
+import atexit
 
 def ComputeURL(url, variables=None, useArupProxy=False, timeout=10, client='arupcomputepy'):
     if variables is None: # None may be possible for a calculation that takes no inputs e.g. random number generator
@@ -10,12 +11,6 @@ def ComputeURL(url, variables=None, useArupProxy=False, timeout=10, client='arup
     
     root = r'https://compute.arup.digital/api'
     url = root + '/' + url + '?client=' + client # Tag API calls stating that they came from the python library, can be overridden if we want to collect different data
-    accessToken = AcquireToken()
-    
-    try:
-        return MakeRequest(url, variables, timeout, accessToken, useArupProxy=useArupProxy)
-    except:
-        pass # most likely a token error, try again with a new one before falling over
 
     accessToken = AcquireNewAccessToken()
     return MakeRequest(url, variables, timeout, accessToken, useArupProxy=useArupProxy)
@@ -66,46 +61,53 @@ def MakeRequest(url, variables, timeout, accessToken, useArupProxy=False):
     
     return json.loads(r.content)
 
-def AcquireToken():
-    userDataDir = appdirs.user_data_dir('arupcomputepy','arupcompute')
-    refreshTokenPath = os.path.join(userDataDir,'refreshToken.txt')
-
-    if os.path.isfile(refreshTokenPath):
-        with open(refreshTokenPath) as f:
-            refreshToken = f.read().rstrip()
-        return AcquireNewAccessToken(refreshToken=refreshToken)
-    else:
-        return AcquireNewAccessToken()
 
 def AcquireNewAccessToken(refreshToken=None):
 
-    authorityHostUrl = 'https://login.windows.net/'
-    tenant = 'arup.onmicrosoft.com'
-    resource = 'cd7cf9f0-b6a0-4cf0-a363-a023d9e2595d'
+    tenant = '4ae48b41-0137-4599-8661-fc641fe77bea'
     clientId = '765d8aec-a87c-4d7d-be95-b3456ef8b732'
-    authority_url = authorityHostUrl + '/' + tenant
+    authority_url = 'https://login.microsoftonline.com/' + tenant + '/v2.0'
+    scopes = ["api://df8247c5-9e83-4409-9946-6daf9722271a/access_as_user"]
 
-    context = adal.AuthenticationContext(
-    authority_url, validate_authority=tenant != 'adfs',
-    )
+    # Cache implementation: https://msal-python.readthedocs.io/en/latest/index.html?highlight=PublicClientApplication#tokencache
+    userDataDir = appdirs.user_data_dir('Compute','Arup')
+    token_cache = os.path.join(userDataDir,'TokenCachePy.msalcache.bin')
 
-    if refreshToken == None:
-        code = context.acquire_user_code(resource, clientId)
-        print(code['message']) # there is a risk that if the user cannot see this the program will hang indefinitely
-        response = context.acquire_token_with_device_code(resource, code, clientId)
+    result = None
+    cache = msal.SerializableTokenCache()
+    if os.path.exists(token_cache):
+        cache.deserialize(open(token_cache, "r").read())
+
+    atexit.register(lambda:
+        open(token_cache, "w").write(cache.serialize())
+        # Hint: The following optional line persists only when state changed
+        if cache.has_state_changed else None
+        )
+
+    app = msal.PublicClientApplication(clientId, authority=authority_url, token_cache=cache)
+    accounts = app.get_accounts()
+    if accounts:
+        # If so, you could then somehow display these accounts and let end user choose
+        # Assuming the end user chose this one
+        chosen = accounts[0]
+        print("Using default account: " + chosen["username"])
+        # Now let's try to find a token in cache for this account
+        result = app.acquire_token_silent(scopes, account=chosen)
+    
+    if not result:
+        # So no suitable token exists in cache. Let's get a new one from AAD.
+        flow = app.initiate_device_flow(scopes=scopes)
+        print(flow["message"])
+        # Ideally you should wait here, in order to save some unnecessary polling
+        # input("Press Enter after you successfully login from another device...")
+        result = app.acquire_token_by_device_flow(flow)  # By default it will block
+
+    if "access_token" in result:
+        return result['access_token']
     else:
-        response = context.acquire_token_with_refresh_token(refreshToken, clientId, resource)
-
-    # Save the refresh token for next time
-    refreshToken = response['refreshToken']
-    userDataDir = appdirs.user_data_dir('arupcomputepy','arupcompute')
-    refreshTokenPath = os.path.join(userDataDir,'refreshToken.txt')
-    if not os.path.exists(userDataDir):
-        os.makedirs(userDataDir)
-    with open(refreshTokenPath, 'w') as f:
-        f.write(refreshToken)
-
-    return response['accessToken']
+        print(result.get("error"))
+        print(result.get("error_description"))
+        print(result.get("correlation_id"))  # You may need this when reporting a bug
 
 def test():
     print('arupcomputepy has installed correctly')
