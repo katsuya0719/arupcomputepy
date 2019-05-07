@@ -1,10 +1,10 @@
 from setuptools import setup, find_packages
 
 setup(name='arupcomputepy',
-    version='0.1.5',
+    version='0.1.6',
     description='Python library to interact with the Arup Compute API',
     url='https://gitlab.arup.com/arupcompute/arupcomputepy',
     author='Hugh Groves',
-    install_requires=['requests','adal','appdirs'],
+    install_requires=['requests','msal','appdirs','os','atexit','json'],
     packages=find_packages(),
     zip_safe=False)
