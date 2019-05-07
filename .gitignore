@@ -116,3 +116,5 @@ coverage.xml
 
 .idea/
 
+env/
+.vscode/
