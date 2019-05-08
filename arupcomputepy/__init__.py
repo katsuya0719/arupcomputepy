@@ -8,7 +8,7 @@ import atexit
 def ComputeURL(url, variables=None, useArupProxy=False, timeout=10, client='arupcomputepy'):
     if variables is None: # None may be possible for a calculation that takes no inputs e.g. random number generator
         variables = {}
-    
+
     root = r'https://compute.arup.digital/api'
     url = root + '/' + url + '?client=' + client # Tag API calls stating that they came from the python library, can be overridden if we want to collect different data
 
@@ -41,7 +41,7 @@ def Compute(library, calculation, variables=None, useArupProxy=False, timeout=10
 
 def MakeRequest(url, variables, timeout, accessToken, useArupProxy=False):
     headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer %s' % accessToken}
-    
+
     if useArupProxy:
 
         proxyDict = {
@@ -58,7 +58,7 @@ def MakeRequest(url, variables, timeout, accessToken, useArupProxy=False):
 
     if '<title>Sign in to your account</title>'.encode('utf-8') in r.content:
         raise SystemError('ArupCompute servers blocked to python access. Contact Matteo Cominetti to request that access be reopened.')
-    
+
     return json.loads(r.content)
 
 
@@ -72,6 +72,9 @@ def AcquireNewAccessToken(refreshToken=None):
     # Cache implementation: https://msal-python.readthedocs.io/en/latest/index.html?highlight=PublicClientApplication#tokencache
     userDataDir = appdirs.user_data_dir('Compute','Arup')
     token_cache = os.path.join(userDataDir,'TokenCachePy.msalcache.bin')
+    
+    if not os.path.exists(userDataDir):
+        os.makedirs(userDataDir)
 
     result = None
     cache = msal.SerializableTokenCache()
@@ -93,7 +96,7 @@ def AcquireNewAccessToken(refreshToken=None):
         print("Using default account: " + chosen["username"])
         # Now let's try to find a token in cache for this account
         result = app.acquire_token_silent(scopes, account=chosen)
-    
+
     if not result:
         # So no suitable token exists in cache. Let's get a new one from AAD.
         flow = app.initiate_device_flow(scopes=scopes)
