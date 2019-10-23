@@ -66,7 +66,7 @@ def AcquireNewAccessToken(refreshToken=None):
 
     tenant = '4ae48b41-0137-4599-8661-fc641fe77bea'
     clientId = '765d8aec-a87c-4d7d-be95-b3456ef8b732'
-    authority_url = 'https://login.microsoftonline.com/' + tenant + '/v2.0'
+    authority_url = 'https://login.microsoftonline.com/' + tenant
     scopes = ["api://df8247c5-9e83-4409-9946-6daf9722271a/access_as_user"]
 
     # Cache implementation: https://msal-python.readthedocs.io/en/latest/index.html?highlight=PublicClientApplication#tokencache
