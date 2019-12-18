@@ -57,7 +57,7 @@ def MakeRequest(url, variables, timeout, accessToken, useArupProxy=False):
     r.raise_for_status() # check for failed responses e.g. 400
 
     if '<title>Sign in to your account</title>'.encode('utf-8') in r.content:
-        raise SystemError('ArupCompute servers blocked to python access. Contact Matteo Cominetti to request that access be reopened.')
+        raise SystemError('Connection has been unsuccessful, check authentication and / or proxy requirements. If unsuccessful raise an issue at https://gitlab.arup.com/arupcompute/arupcomputepy/issues')
 
     return json.loads(r.content)
 
