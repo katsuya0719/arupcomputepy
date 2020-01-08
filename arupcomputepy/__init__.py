@@ -5,26 +5,7 @@ import appdirs
 import os
 import atexit
 
-def ComputeURL(url, variables=None, useArupProxy=False, timeout=10, client='arupcomputepy', clientId=None, clientSecret=None):
-    if variables is None: # None may be possible for a calculation that takes no inputs e.g. random number generator
-        variables = {}
-
-    # root = r'https://compute.arup.digital/api'
-    root = r'https://arupcompute-dev.azurewebsites.net/api' # temporary for testing purposes
-    url = root + '/' + url + '&client=' + client # Tag API calls stating that they came from the python library, can be overridden if we want to collect different data
-
-    accessToken = None
-    
-    if (clientId==None) & (clientSecret==None):
-        accessToken = AcquireNewAccessTokenDeviceFlow()
-    elif (clientId!=None) & (clientSecret!=None):
-        accessToken = AcquireNewAccessTokenClientSecret(clientId, clientSecret)
-    else:
-        raise ValueError('If using the client secret flow both a clientId and clientSecret must be input')
-    
-    return MakeRequest(url, variables, timeout, accessToken, useArupProxy=useArupProxy)
-
-def Compute(calcID, jobNumber, variables=None, useArupProxy=False, timeout=10, client='arupcomputepy', clientId=None, clientSecret=None):
+def MakeCalculationRequest(calcID, jobNumber, accessToken, variables=None, client='arupcomputepy', useArupProxy=False, timeout=10):
     '''
     Sends calculation(s) to the ArupCompute server for execution and returns the result.
 
@@ -48,23 +29,45 @@ def Compute(calcID, jobNumber, variables=None, useArupProxy=False, timeout=10, c
     Returns:
         server response as JSON
     '''
-    url = f'calcrecords?calcId={calcID}&jobNumber={jobNumber}'
-    return ComputeURL(url, variables=variables, useArupProxy=useArupProxy, timeout=timeout, client=client, clientId=clientId, clientSecret=clientSecret)
 
-def MakeRequest(url, variables, timeout, accessToken, useArupProxy=False):
+    endpoint = f'calcrecords?calcId={calcID}&jobNumber={jobNumber}'
+    
+    return MakeGenericRequest(endpoint, accessToken, body=variables, useArupProxy=useArupProxy, timeout=timeout, client=client)
+
+def MakeGenericRequest(endpoint, accessToken, body=None, client='arupcomputepy', timeout=10, useArupProxy=False):
+    '''
+    Sends a generic API request to ArupCompute. For API documentation look here https://arupcompute-dev.azurewebsites.net/api/docs/index.html
+
+    Keyword arguments:
+        endpoint - everything after https://compute.arup.digital/api, for example if you want to hit https://compute.arup.digital/api/CalcRecords just pass in 'CalcRecords'
+        body - if you are hitting a POST endpoint put the payload here in JSON format
+        accessToken - ArupCompute access token, use helper methods in arupcomputepy to obtain this (e.g. AcquireNewAccessTokenDeviceFlow, AcquireNewAccessTokenClientSecretFlow)
+        client - defaults to 'arupcomputepy' but if developing your own application utilising this library please override this
+        timeout - how long to wait for a server response before failing
+        useArupProxy - whether to use the Arup proxy servers or not (may be required where porous networking is not enabled)
+    '''
+
+    if body is None:
+        body = {}
+    
     headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer %s' % accessToken}
 
+    # root = r'https://compute.arup.digital/api'
+    root = r'https://arupcompute-dev.azurewebsites.net/api' # temporary for testing purposes
+
+    url = root + '/' + endpoint + '&client=' + client
+    
     if useArupProxy:
 
         proxyDict = {
             "http": "http://proxy.ha.arup.com:80",
             "https": "https://proxy.ha.arup.com:80"
         }
-
-        r = requests.post(url, json=variables, headers=headers, timeout=timeout, proxies=proxyDict)
+        
+        r = requests.post(url, json=body, headers=headers, timeout=timeout, proxies=proxyDict)
 
     else:
-        r = requests.post(url, json=variables, headers=headers, timeout=timeout)
+        r = requests.post(url, json=body, headers=headers, timeout=timeout)
 
     r.raise_for_status() # check for failed responses e.g. 400
 
@@ -124,7 +127,7 @@ def AcquireNewAccessTokenDeviceFlow(refreshToken=None):
         print(result.get("error_description"))
         print(result.get("correlation_id"))  # You may need this when reporting a bug
 
-def AcquireNewAccessTokenClientSecret(clientId, clientSecret):
+def AcquireNewAccessTokenClientSecretFlow(clientId, clientSecret):
 
     # https://github.com/AzureAD/microsoft-authentication-library-for-python/blob/dev/sample/confidential_client_secret_sample.py
     

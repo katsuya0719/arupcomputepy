@@ -10,8 +10,15 @@ variables = {
     'a': 1
 }
 
+# To call ArupCompute we must get an access token
+# there are several ways (flows) for acquiring these
+# the simples is the device code flow which will
+# prompt the user to visit a microsoft website and
+# paste a code as authentication
+accessToken = arupcomputepy.AcquireNewAccessTokenDeviceFlow()
+
 # Response is everything sent back by ArupCompute
-response = arupcomputepy.Compute(calcID, jobNumber, variables=variables)
+response = arupcomputepy.MakeCalculationRequest(calcID, jobNumber, accessToken, variables=variables)
 
 # The output from the calculation is JSON formatted
 # We can convert it into python data structures using the
