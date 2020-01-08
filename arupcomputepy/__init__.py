@@ -5,25 +5,34 @@ import appdirs
 import os
 import atexit
 
-def ComputeURL(url, variables=None, useArupProxy=False, timeout=10, client='arupcomputepy'):
+def ComputeURL(url, variables=None, useArupProxy=False, timeout=10, client='arupcomputepy', clientId=None, clientSecret=None):
     if variables is None: # None may be possible for a calculation that takes no inputs e.g. random number generator
         variables = {}
 
-    root = r'https://compute.arup.digital/api'
-    url = root + '/' + url + '?client=' + client # Tag API calls stating that they came from the python library, can be overridden if we want to collect different data
+    # root = r'https://compute.arup.digital/api'
+    root = r'https://arupcompute-dev.azurewebsites.net/api' # temporary for testing purposes
+    url = root + '/' + url + '&client=' + client # Tag API calls stating that they came from the python library, can be overridden if we want to collect different data
 
-    accessToken = AcquireNewAccessToken()
+    accessToken = None
+    
+    if (clientId==None) & (clientSecret==None):
+        accessToken = AcquireNewAccessTokenDeviceFlow()
+    elif (clientId!=None) & (clientSecret!=None):
+        accessToken = AcquireNewAccessTokenClientSecret(clientId, clientSecret)
+    else:
+        raise ValueError('If using the client secret flow both a clientId and clientSecret must be input')
+    
     return MakeRequest(url, variables, timeout, accessToken, useArupProxy=useArupProxy)
 
-def Compute(library, calculation, variables=None, useArupProxy=False, timeout=10, client='arupcomputepy'):
+def Compute(calcID, jobNumber, variables=None, useArupProxy=False, timeout=10, client='arupcomputepy', clientId=None, clientSecret=None):
     '''
     Sends calculation(s) to the ArupCompute server for execution and returns the result.
 
     First time running will require the creation of an Azure access token. This will be guided via the console. Alternatively execute the 'AcquireAccessToken' function.
 
     Keyword arguments:
-        library -- ArupCompute library to use (as string) e.g. 'designcheck'
-        calculation -- ArupCompute calculation to run (as string, formatted as per ArupCompute website URL) e.g. 'structural/concrete/ns_3473/constructionjointcapacity'
+        calcID - calculation identifier, find using the ArupCompute web interface NOTE this is pegged to a specific library version and will NOT automatically be updated to take benefit from bugfixes
+        jobNumber - jobNumber this calculation is associated with
         variables -- Dictionary of variables to feed key = variable name, value = value to run (names and formatting as per ArupCompute URL). All required data types can be handled for example:
             variables = {}
             variables['alpha'] = 12.7
@@ -32,12 +41,15 @@ def Compute(library, calculation, variables=None, useArupProxy=False, timeout=10
             variables['layers'] = [65,90,150]
         useArupProxy - try and use False initially, otherwise True may be required
         timeout - how long to wait for a server response before failing
+        client - defaults to 'arupcomputepy' but if developing your own application utilising this library please override this
+        clientId - required as part of the client secret flow, obtained from Azure App Registration
+        clientSecret - the client secret associated with your app registration
 
     Returns:
         server response as JSON
     '''
-    url = '/'.join([library,calculation])
-    return ComputeURL(url, variables=variables, useArupProxy=useArupProxy, timeout=timeout, client=client)
+    url = f'calcrecords?calcId={calcID}&jobNumber={jobNumber}'
+    return ComputeURL(url, variables=variables, useArupProxy=useArupProxy, timeout=timeout, client=client, clientId=clientId, clientSecret=clientSecret)
 
 def MakeRequest(url, variables, timeout, accessToken, useArupProxy=False):
     headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer %s' % accessToken}
@@ -62,7 +74,7 @@ def MakeRequest(url, variables, timeout, accessToken, useArupProxy=False):
     return json.loads(r.content)
 
 
-def AcquireNewAccessToken(refreshToken=None):
+def AcquireNewAccessTokenDeviceFlow(refreshToken=None):
 
     tenant = '4ae48b41-0137-4599-8661-fc641fe77bea'
     clientId = '765d8aec-a87c-4d7d-be95-b3456ef8b732'
@@ -105,6 +117,30 @@ def AcquireNewAccessToken(refreshToken=None):
         # input("Press Enter after you successfully login from another device...")
         result = app.acquire_token_by_device_flow(flow)  # By default it will block
 
+    if "access_token" in result:
+        return result['access_token']
+    else:
+        print(result.get("error"))
+        print(result.get("error_description"))
+        print(result.get("correlation_id"))  # You may need this when reporting a bug
+
+def AcquireNewAccessTokenClientSecret(clientId, clientSecret):
+
+    # https://github.com/AzureAD/microsoft-authentication-library-for-python/blob/dev/sample/confidential_client_secret_sample.py
+    
+    tenant = '4ae48b41-0137-4599-8661-fc641fe77bea'
+    authority_url = 'https://login.microsoftonline.com/' + tenant
+    scopes = ['api://df8247c5-9e83-4409-9946-6daf9722271a/.default']
+
+    app = msal.ConfidentialClientApplication(clientId, authority=authority_url, client_credential=clientSecret)
+
+    result = None
+
+    result = app.acquire_token_silent(scopes, account=None)
+
+    if not result:
+        result = app.acquire_token_for_client(scopes=scopes)
+    
     if "access_token" in result:
         return result['access_token']
     else:

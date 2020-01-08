@@ -1,20 +1,21 @@
 import arupcomputepy
+import json
 
-library = 'designcheck'
-calc_url = 'structural/yieldlines/rectangularfoursidessupported_15312'
+calcID = 2761 # Civil > Calculate K value DC2 library version 0.0.0-beta475
+jobNumber = '00000-00'
 
 variables = {
-    'a': 3,
-    'b': 5,
-    'i_l': 0,
-    'i_b': 0,
-    'i_r': 0,
-    'i_t': 0,
-    'n': 1,
-    'p_v': 0,
-    'p_h': 0
+    'ID': 'Test',
+    'L': 1,
+    'a': 1
 }
 
-response = arupcomputepy.Compute(library, calc_url, variables=variables)
+# Response is everything sent back by ArupCompute
+response = arupcomputepy.Compute(calcID, jobNumber, variables=variables)
 
-print(response['result'])
+# The output from the calculation is JSON formatted
+# We can convert it into python data structures using the
+# built-in JSON library
+output = json.loads(response['output'])
+
+print(output['results_K']['value'])
