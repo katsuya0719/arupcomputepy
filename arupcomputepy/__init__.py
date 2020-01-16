@@ -30,11 +30,11 @@ def MakeCalculationRequest(calcID, jobNumber, accessToken, variables=None, clien
         server response as JSON
     '''
 
-    endpoint = f'calcrecords?calcId={calcID}&jobNumber={jobNumber}'
+    endpoint = f'calcrecords?calcId={calcID}&jobNumber={jobNumber}&clietnt={client}'
     
     return MakeGenericRequest(endpoint, accessToken, body=variables, useArupProxy=useArupProxy, timeout=timeout, client=client)
 
-def MakeGenericRequest(endpoint, accessToken, body=None, client='arupcomputepy', timeout=10, useArupProxy=False):
+def MakeGenericRequest(endpoint, accessToken, body=None, timeout=10, useArupProxy=False):
     '''
     Sends a generic API request to ArupCompute. For API documentation look here https://arupcompute-dev.azurewebsites.net/api/docs/index.html
 
@@ -42,7 +42,6 @@ def MakeGenericRequest(endpoint, accessToken, body=None, client='arupcomputepy',
         endpoint - everything after https://compute.arup.digital/api, for example if you want to hit https://compute.arup.digital/api/CalcRecords just pass in 'CalcRecords'
         body - if you are hitting a POST endpoint put the payload here in JSON format
         accessToken - ArupCompute access token, use helper methods in arupcomputepy to obtain this (e.g. AcquireNewAccessTokenDeviceFlow, AcquireNewAccessTokenClientSecretFlow)
-        client - defaults to 'arupcomputepy' but if developing your own application utilising this library please override this
         timeout - how long to wait for a server response before failing
         useArupProxy - whether to use the Arup proxy servers or not (may be required where porous networking is not enabled)
     '''
@@ -55,7 +54,7 @@ def MakeGenericRequest(endpoint, accessToken, body=None, client='arupcomputepy',
     # root = r'https://compute.arup.digital/api'
     root = r'https://arupcompute-dev.azurewebsites.net/api' # temporary for testing purposes
 
-    url = root + '/' + endpoint + '&client=' + client
+    url = root + '/' + endpoint
     
     if useArupProxy:
 
@@ -64,10 +63,16 @@ def MakeGenericRequest(endpoint, accessToken, body=None, client='arupcomputepy',
             "https": "https://proxy.ha.arup.com:80"
         }
         
-        r = requests.post(url, json=body, headers=headers, timeout=timeout, proxies=proxyDict)
+        if(body):
+            r = requests.post(url, json=body, headers=headers, timeout=timeout, proxies=proxyDict)
+        else:
+            r = requests.get(url, headers=headers, timeout=timeout, proxies=proxyDict)
 
     else:
-        r = requests.post(url, json=body, headers=headers, timeout=timeout)
+        if(body):
+            r = requests.post(url, json=body, headers=headers, timeout=timeout)
+        else:
+            r = requests.get(url, headers=headers, timeout=timeout)
 
     r.raise_for_status() # check for failed responses e.g. 400
 
