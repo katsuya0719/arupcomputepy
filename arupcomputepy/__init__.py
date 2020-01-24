@@ -5,7 +5,7 @@ import appdirs
 import os
 import atexit
 
-def MakeCalculationRequest(calcID, jobNumber, accessToken, variables=None, client='arupcomputepy', useArupProxy=False, timeout=10):
+def MakeCalculationRequest(calcID, jobNumber, accessToken, isBatch, variables=None, client='arupcomputepy', useArupProxy=False, timeout=10):
     '''
     Sends calculation(s) to the ArupCompute server for execution and returns the result.
 
@@ -14,6 +14,7 @@ def MakeCalculationRequest(calcID, jobNumber, accessToken, variables=None, clien
     Keyword arguments:
         calcID - calculation identifier, find using the ArupCompute web interface NOTE this is pegged to a specific library version and will NOT automatically be updated to take benefit from bugfixes
         jobNumber - jobNumber this calculation is associated with
+        isBatch - is this a batch calculation (multiple calculations in one request)?
         variables -- Dictionary of variables to feed key = variable name, value = value to run (names and formatting as per ArupCompute URL). All required data types can be handled for example:
             variables = {}
             variables['alpha'] = 12.7
@@ -30,9 +31,9 @@ def MakeCalculationRequest(calcID, jobNumber, accessToken, variables=None, clien
         server response as JSON
     '''
 
-    endpoint = f'calcrecords?calcId={calcID}&jobNumber={jobNumber}&clietnt={client}'
+    endpoint = f'calcrecords?calcId={calcID}&jobNumber={jobNumber}&client={client}&isBatch={isBatch}'
     
-    return MakeGenericRequest(endpoint, accessToken, body=variables, useArupProxy=useArupProxy, timeout=timeout, client=client)
+    return MakeGenericRequest(endpoint, accessToken, body=variables, useArupProxy=useArupProxy, timeout=timeout)
 
 def MakeGenericRequest(endpoint, accessToken, body=None, timeout=10, useArupProxy=False):
     '''
