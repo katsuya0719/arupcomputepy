@@ -3,20 +3,20 @@ import json
 
 # See 1_SimpleExample.py for additional comments
 
-calcID = 2761
-jobNumber = '00000-00'
+calcID = 2118 # Sample Library v2.0.8 Basic Calc
+jobNumber = '00000-00' # for testing only - please use a real job number
 
-# Note here that we use lists of input data to enable batch execution
+# Note that we use lists of input data for a batch calculation
 variables = {
-    'ID': ['Test1','Test2','Test3'],
-    'a': [1,2,3],
-    'L': [1,2,3]
+    'a': [1,20,300],
+    'b': [2,40,600]
 }
 
 accessToken = arupcomputepy.AcquireNewAccessTokenDeviceFlow()
 
-responses = arupcomputepy.MakeCalculationRequest(calcID, jobNumber, accessToken, True, variables=variables)
+response = arupcomputepy.MakeCalculationRequest(calcID, jobNumber, accessToken, True, variables=variables)
 
-for response in responses:
-    output = json.loads(response['output'])
-    print(output['results_K']['value'])
+outputs = json.loads(response['output'])
+
+for output in outputs:
+    print(output)

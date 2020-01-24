@@ -1,13 +1,12 @@
 import arupcomputepy
 import json
 
-calcID = 2761 # Civil > Calculate K value DC2 library version 0.0.0-beta475
-jobNumber = '00000-00'
+calcID = 2118 # Sample Library v2.0.8 Basic Calc
+jobNumber = '00000-00' # for testing only - please use a real job number
 
 variables = {
-    'ID': 'Test',
-    'L': 1,
-    'a': 1
+    'a': 1,
+    'b': 2
 }
 
 # To call ArupCompute we must get an access token
@@ -23,6 +22,7 @@ response = arupcomputepy.MakeCalculationRequest(calcID, jobNumber, accessToken, 
 # The output from the calculation is JSON formatted
 # We can convert it into python data structures using the
 # built-in JSON library
+# The complexity of the return data structure is calculation-dependent
 output = json.loads(response['output'])
 
-print(output['results_K']['value'])
+print(output)
