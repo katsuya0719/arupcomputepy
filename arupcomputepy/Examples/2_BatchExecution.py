@@ -14,7 +14,8 @@ variables = {
 
 accessToken = arupcomputepy.AcquireNewAccessTokenDeviceFlow()
 
-response = arupcomputepy.MakeCalculationRequest(calcID, jobNumber, accessToken, True, variables=variables)
+# Note that we need to set the variable isBatch = True
+response = arupcomputepy.MakeCalculationRequest(calcID, jobNumber, accessToken, isBatch=True, variables=variables)
 
 outputs = json.loads(response['output'])
 
