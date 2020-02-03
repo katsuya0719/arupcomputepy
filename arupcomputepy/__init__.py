@@ -5,7 +5,7 @@ import appdirs
 import os
 import atexit
 
-def MakeCalculationRequest(calcID, jobNumber, accessToken, isBatch, variables=None, client='arupcomputepy', useArupProxy=False, timeout=None):
+def MakeCalculationRequest(calcID, jobNumber, accessToken, isBatch, variables=None, client='arupcomputepy', useArupProxy=False, timeout=None, resultType="simple"):
     '''
     Sends calculation(s) to the ArupCompute server for execution and returns the result.
 
@@ -26,16 +26,21 @@ def MakeCalculationRequest(calcID, jobNumber, accessToken, isBatch, variables=No
         client - defaults to 'arupcomputepy' but if developing your own application utilising this library please override this
         clientId - required as part of the client secret flow, obtained from Azure App Registration
         clientSecret - the client secret associated with your app registration
+        resultType - either "full" - everything that the library provides, "simple" - limited to ArupComputeResult (results, reports, messages), or "mini" - just results. Defaults to "simple".
 
     Returns:
         server response as JSON
     '''
 
-    endpoint = f'calcrecords?calcId={calcID}&jobNumber={jobNumber}&client={client}&isBatch={isBatch}'
+    checkResultType = ['full','mini','simple']
+    if (resultType not in checkResultType):
+        raise Exception(f"Entered result type '{resultType}', but only 'full', 'simple', or 'mini' keyword arguments are allowed")
+
+    endpoint = f'calcrecords?calcId={calcID}&jobNumber={jobNumber}&client={client}&isBatch={isBatch}&resultType={resultType}'
     
     return MakeGenericRequest(endpoint, accessToken, body=variables, useArupProxy=useArupProxy, timeout=timeout)
 
-def MakeGenericRequest(endpoint, accessToken, body=None, timeout=10, useArupProxy=False):
+def MakeGenericRequest(endpoint, accessToken, body=None, timeout=None, useArupProxy=False):
     '''
     Sends a generic API request to ArupCompute. For API documentation look here https://arupcompute-dev.azurewebsites.net/api/docs/index.html
 
