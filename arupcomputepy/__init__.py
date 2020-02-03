@@ -5,7 +5,7 @@ import appdirs
 import os
 import atexit
 
-def MakeCalculationRequest(calcID, jobNumber, accessToken, isBatch, variables=None, client='arupcomputepy', useArupProxy=False, timeout=10):
+def MakeCalculationRequest(calcID, jobNumber, accessToken, isBatch, variables=None, client='arupcomputepy', useArupProxy=False, timeout=None):
     '''
     Sends calculation(s) to the ArupCompute server for execution and returns the result.
 
