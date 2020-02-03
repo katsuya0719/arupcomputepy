@@ -6,35 +6,44 @@ def MultiCall(number):
 
     print(f'Starting run ({number})')
     
-    library = 'designcheck'
-    calc_url = 'structural/yieldlines/rectangularfoursidessupported_15312'
+    jobnumber = "00000"
+    calcId = 3694
     
     variables = {
-    'a': [],
-    'b': [],
-    'i_l': [],
-    'i_b': [],
-    'i_r': [],
-    'i_t': [],
-    'n': [],
-    'p_v': [],
-    'p_h': []
+    'ID': [],
+    'E': [],
+    'N': [],
+    'A': [],
+    'z': [],
+    'p': [],
+    'c_dir': [],
+    'c_season': [],
+    'c_o': [],
+    'h_ave': [],
+    'x': [],
+    'X_c': [],
+    'X_T': []
     }
 
     for x in range (0, number):
-        variables['a'].append(3),
-        variables['b'].append(5),
-        variables['i_l'].append(0),
-        variables['i_b'].append(0),
-        variables['i_r'].append(0),
-        variables['i_t'].append(0),
-        variables['n'].append(1),
-        variables['p_v'].append(0),
-        variables['p_h'].append(0),
+        variables['ID'].append('Stress test')
+        variables['E'].append(300)
+        variables['N'].append(50)
+        variables['A'].append(112)
+        variables['z'].append(9.0)
+        variables['p'].append(0.02)
+        variables['c_dir'].append(0.73)
+        variables['c_season'].append(1.0)
+        variables['c_o'].append(1.0)
+        variables['h_ave'].append(5.0)
+        variables['x'].append(2.0)
+        variables['X_c'].append(70.0)
+        variables['X_T'].append(4.5)
 
     start_time = time.time()
 
-    responses = arupcomputepy.Compute(library, calc_url, variables=variables, timeout=None) # did batch execution so we get a list of responses instead of just one
+    token = arupcomputepy.AcquireNewAccessTokenDeviceFlow()
+    responses = arupcomputepy.MakeCalculationRequest(calcId, jobnumber, token, isBatch=True, variables=variables) # did batch execution so we get a list of responses instead of just one
 
     calcTime = time.time() - start_time
     calctimePer = calcTime / number
@@ -45,16 +54,17 @@ def MultiCall(number):
 
 # Main
 
-testX = [1,10,100,500]
+testX = [4]
 testY = []
 for x in testX:
     try:
         testY.append(MultiCall(x))
-    except:
-        print(f'Calculation run {number} failed')
+    except Exception as ex:
+        print(f'Calculation run {x} failed')
+        print(ex)
         continue
 
-fig = plit.figure()
+fig = plt.figure()
 ax = plt.aces()
 ax.plot(testX, testY)
 plt.show()
