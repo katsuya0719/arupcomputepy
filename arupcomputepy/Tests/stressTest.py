@@ -1,6 +1,7 @@
 import arupcomputepy
 import time
 import matplotlib.pyplot as plt
+import logging
 
 def MultiCall(number):
 
@@ -54,17 +55,12 @@ def MultiCall(number):
 
 # Main
 
-testX = [4]
+testX = [5,6]
 testY = []
 for x in testX:
-    try:
-        testY.append(MultiCall(x))
-    except Exception as ex:
-        print(f'Calculation run {x} failed')
-        print(ex)
-        continue
+    testY.append(MultiCall(x))
 
 fig = plt.figure()
-ax = plt.aces()
+ax = plt.axes()
 ax.plot(testX, testY)
 plt.show()

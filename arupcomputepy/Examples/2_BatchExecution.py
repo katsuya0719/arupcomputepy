@@ -8,8 +8,8 @@ jobNumber = '00000-00' # for testing only - please use a real job number
 
 # Note that we use lists of input data for a batch calculation
 variables = {
-    'a': [1,20,300],
-    'b': [2,40,600]
+    'a': [1,20,300,4000],
+    'b': [2,40,600,7000]
 }
 
 accessToken = arupcomputepy.AcquireNewAccessTokenDeviceFlow()

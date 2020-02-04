@@ -4,6 +4,7 @@ import msal
 import appdirs
 import os
 import atexit
+import logging
 
 def MakeCalculationRequest(calcID, jobNumber, accessToken, isBatch, variables=None, client='arupcomputepy', useArupProxy=False, timeout=None, resultType="simple"):
     '''
@@ -51,11 +52,8 @@ def MakeGenericRequest(endpoint, accessToken, body=None, timeout=None, useArupPr
         timeout - how long to wait for a server response before failing
         useArupProxy - whether to use the Arup proxy servers or not (may be required where porous networking is not enabled)
     '''
-
-    if body is None:
-        body = {}
     
-    headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer %s' % accessToken}
+    headers = {'Authorization': 'Bearer %s' % accessToken}
 
     # root = r'https://compute.arup.digital/api'
     root = r'https://arupcompute-dev.azurewebsites.net/api' # temporary for testing purposes
