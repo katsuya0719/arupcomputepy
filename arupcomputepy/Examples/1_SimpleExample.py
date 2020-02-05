@@ -17,7 +17,7 @@ variables = {
 accessToken = arupcomputepy.AcquireNewAccessTokenDeviceFlow()
 
 # Response is everything sent back by ArupCompute
-response = arupcomputepy.MakeCalculationRequest(calcID, jobNumber, accessToken, False, variables=variables)
+response = arupcomputepy.MakeCalculationRequest(calcID, jobNumber, accessToken, isBatch=False, variables=variables)
 
 # The output from the calculation is JSON formatted
 # We can convert it into python data structures using the
