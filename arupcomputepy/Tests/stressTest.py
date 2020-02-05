@@ -1,14 +1,14 @@
 import arupcomputepy
 import time
 import matplotlib.pyplot as plt
-import logging
+import random
 
 def MultiCall(number):
 
     print(f'Starting run ({number})')
     
     jobnumber = "00000"
-    calcId = 3694
+    calcId = 4035 # DesignCheck2 v0.0.0-beta535 Peak Velocity Pressure
     
     variables = {
     'ID': [],
@@ -28,18 +28,18 @@ def MultiCall(number):
 
     for x in range (0, number):
         variables['ID'].append('Stress test')
-        variables['E'].append(300)
-        variables['N'].append(50)
-        variables['A'].append(112)
-        variables['z'].append(9.0)
+        variables['E'].append(random.uniform(290.0,300.0))
+        variables['N'].append(random.uniform(45.0,55.0))
+        variables['A'].append(random.uniform(100.0,125.0))
+        variables['z'].append(random.uniform(8.0,10.0))
         variables['p'].append(0.02)
-        variables['c_dir'].append(0.73)
+        variables['c_dir'].append(random.uniform(0.73,1.00))
         variables['c_season'].append(1.0)
         variables['c_o'].append(1.0)
         variables['h_ave'].append(5.0)
         variables['x'].append(2.0)
-        variables['X_c'].append(70.0)
-        variables['X_T'].append(4.5)
+        variables['X_c'].append(random.uniform(50.0,80.0))
+        variables['X_T'].append(random.uniform(2.0,5.0))
 
     start_time = time.time()
 
@@ -51,16 +51,21 @@ def MultiCall(number):
 
     print(f'Calculation run of ({number}) --- {calctimePer} seconds per --- ')
 
-    return calctimePer
+    return (calcTime, calctimePer)
 
 # Main
 
-testX = [5,6]
-testY = []
+testX = [1,2,4,8,16,32,64,128,256,512,1024,2048,4096,8192]
+total = []
+percalc = []
 for x in testX:
-    testY.append(MultiCall(x))
+    calcTime, calctimePer = MultiCall(x)
+    total.append(calcTime)
+    percalc.append(calctimePer)
+
 
 fig = plt.figure()
 ax = plt.axes()
-ax.plot(testX, testY)
+ax.plot(testX, total)
+ax.plot(testX, percalc)
 plt.show()
