@@ -1,20 +1,28 @@
 import arupcomputepy
+import json
 
-library = 'designcheck'
-calc_url = 'structural/yieldlines/rectangularfoursidessupported_15312'
+calcID = 2118 # Sample Library v2.0.8 Basic Calc
+jobNumber = '00000-00' # for testing only - please use a real job number
 
 variables = {
-    'a': 3,
-    'b': 5,
-    'i_l': 0,
-    'i_b': 0,
-    'i_r': 0,
-    'i_t': 0,
-    'n': 1,
-    'p_v': 0,
-    'p_h': 0
+    'a': 1,
+    'b': 2
 }
 
-response = arupcomputepy.Compute(library, calc_url, variables=variables)
+# To call ArupCompute we must get an access token
+# there are several ways (flows) for acquiring these
+# the simples is the device code flow which will
+# prompt the user to visit a microsoft website and
+# paste a code as authentication
+accessToken = arupcomputepy.AcquireNewAccessTokenDeviceFlow()
 
-print(response['result'])
+# Response is everything sent back by ArupCompute
+response = arupcomputepy.MakeCalculationRequest(calcID, jobNumber, accessToken, isBatch=False, variables=variables)
+
+# The output from the calculation is JSON formatted
+# We can convert it into python data structures using the
+# built-in JSON library
+# The complexity of the return data structure is calculation-dependent
+output = json.loads(response['output'])
+
+print(output)

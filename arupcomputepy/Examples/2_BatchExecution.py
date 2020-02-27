@@ -1,22 +1,23 @@
 import arupcomputepy
+import json
 
-library = 'designcheck'
-calc_url = 'structural/yieldlines/rectangularfoursidessupported_15312'
+# See 1_SimpleExample.py for additional comments
 
-# Pass in lists for the variables to enable batch execution
+calcID = 2118 # Sample Library v2.0.8 Basic Calc
+jobNumber = '00000-00' # for testing only - please use a real job number
+
+# Note that we use lists of input data for a batch calculation
 variables = {
-    'a': [3,4,5],
-    'b': [5,6,7],
-    'i_l': [0,0,0],
-    'i_b': [0,0,0],
-    'i_r': [0,0,0],
-    'i_t': [0,0,0],
-    'n': [1,1,1],
-    'p_v': [0,0,0],
-    'p_h': [0,0,0]
+    'a': [1,20,300,4000,500,60],
+    'b': [2,40,600,7000,800,90]
 }
 
-responses = arupcomputepy.Compute(library, calc_url, variables=variables) # did batch exceution so we get a list of responses instead of just one
+accessToken = arupcomputepy.AcquireNewAccessTokenDeviceFlow()
 
-for response in responses:
-    print(response['result'])
+# Note that we need to set the variable isBatch = True
+response = arupcomputepy.MakeCalculationRequest(calcID, jobNumber, accessToken, isBatch=True, variables=variables)
+
+outputs = json.loads(response['output'])
+
+for output in outputs:
+    print(output)
