@@ -6,6 +6,12 @@ import os
 import atexit
 import logging
 
+# Use global variable to enable this to be switched for debugging purposes
+# If you want to use the dev server in your script include the following lines
+# import arupcomputepy
+# arupcomputepy.root = 'https://arupcompute-dev.azurewebsites.net/api'
+root = 'https://compute.arup.digital/api'
+
 def MakeCalculationRequest(calcID, jobNumber, accessToken, isBatch, variables=None, client='arupcomputepy', useArupProxy=False, timeout=None, resultType="mini"):
     '''
     Sends calculation(s) to the ArupCompute server for execution and returns the result.
@@ -54,9 +60,6 @@ def MakeGenericRequest(endpoint, accessToken, body=None, timeout=None, useArupPr
     '''
     
     headers = {'Authorization': 'Bearer %s' % accessToken}
-
-    # root = r'https://compute.arup.digital/api'
-    root = r'https://arupcompute-dev.azurewebsites.net/api' # temporary for testing purposes
 
     url = root + '/' + endpoint
     
