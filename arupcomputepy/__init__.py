@@ -89,7 +89,11 @@ def MakeGenericRequest(endpoint, accessToken, body=None, timeout=None, useArupPr
     return json.loads(r.content)
 
 
-def AcquireNewAccessTokenDeviceFlow(refreshToken=None):
+def SerializeCache(token_cache, cache):
+    open(token_cache, "w").write(cache.serialize())
+
+
+def AcquireNewAccessTokenDeviceFlow(refreshToken=None, verbose=False):
 
     tenant = '4ae48b41-0137-4599-8661-fc641fe77bea'
     clientId = '765d8aec-a87c-4d7d-be95-b3456ef8b732'
@@ -108,8 +112,7 @@ def AcquireNewAccessTokenDeviceFlow(refreshToken=None):
     if os.path.exists(token_cache):
         cache.deserialize(open(token_cache, "r").read())
 
-    atexit.register(lambda:
-        open(token_cache, "w").write(cache.serialize())
+    atexit.register(SerializeCache(token_cache, cache),
         # Hint: The following optional line persists only when state changed
         if cache.has_state_changed else None
         )
@@ -120,7 +123,8 @@ def AcquireNewAccessTokenDeviceFlow(refreshToken=None):
         # If so, you could then somehow display these accounts and let end user choose
         # Assuming the end user chose this one
         chosen = accounts[0]
-        print("Using default account: " + chosen["username"])
+        if verbose:
+            print("Using default account: " + chosen["username"])
         # Now let's try to find a token in cache for this account
         result = app.acquire_token_silent(scopes, account=chosen)
 
@@ -129,10 +133,12 @@ def AcquireNewAccessTokenDeviceFlow(refreshToken=None):
         flow = app.initiate_device_flow(scopes=scopes)
         print(flow["message"])
         # Ideally you should wait here, in order to save some unnecessary polling
-        # input("Press Enter after you successfully login from another device...")
+        #input("Press Enter after you successfully login from another device...")
         result = app.acquire_token_by_device_flow(flow)  # By default it will block
 
     if "access_token" in result:
+        if cache.has_state_changed:
+            SerializeCache(token_cache, cache)
         return result['access_token']
     else:
         print(result.get("error"))
