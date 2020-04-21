@@ -112,7 +112,7 @@ def AcquireNewAccessTokenDeviceFlow(refreshToken=None, verbose=False):
     if os.path.exists(token_cache):
         cache.deserialize(open(token_cache, "r").read())
 
-    atexit.register(SerializeCache(token_cache, cache),
+    atexit.register(lambda: SerializeCache(token_cache, cache)
         # Hint: The following optional line persists only when state changed
         if cache.has_state_changed else None
         )
