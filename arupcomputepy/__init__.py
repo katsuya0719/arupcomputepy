@@ -133,7 +133,7 @@ def AcquireNewAccessTokenDeviceFlow(refreshToken=None, verbose=False):
         flow = app.initiate_device_flow(scopes=scopes)
         print(flow["message"])
         # Ideally you should wait here, in order to save some unnecessary polling
-        #input("Press Enter after you successfully login from another device...")
+        # input("Press Enter after you successfully login from another device...")
         result = app.acquire_token_by_device_flow(flow)  # By default it will block
 
     if "access_token" in result:
