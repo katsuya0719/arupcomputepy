@@ -6,7 +6,10 @@ from pathlib import Path
 def Create(html, name, path, replace=False):
     '''
     Utilises the ArupCompute PDF creation service to render HTML to an Arup-branded calculation
-    sheet and then saves it to a local file
+    sheet and then saves it to a local file.
+
+    Note this is a relatively expensive operation that runs on a small service in the cloud that can be quickly
+    overwhelmend. Please do not overload this service as it is the same one that is used by the web interface.
 
     Keyword arguments:
         html - html content (e.g. from DesignCheck calculation)
