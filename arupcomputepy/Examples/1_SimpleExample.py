@@ -1,7 +1,7 @@
 import arupcomputepy
 import json
 
-calcID = 2118 # Sample Library v2.0.8 Basic Calc
+calcID = 182728 # Sample Library v2.1.46 Basic Calc
 jobNumber = '00000-00' # for testing only - please use a real job number
 
 variables = {

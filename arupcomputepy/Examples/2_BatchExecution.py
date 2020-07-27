@@ -3,7 +3,7 @@ import json
 
 # See 1_SimpleExample.py for additional comments
 
-calcID = 2118 # Sample Library v2.0.8 Basic Calc
+calcID = 182728 # Sample Library v2.1.46 Basic Calc
 jobNumber = '00000-00' # for testing only - please use a real job number
 
 # Note that we use lists of input data for a batch calculation
