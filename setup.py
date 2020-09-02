@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(name='arupcomputepy',
-    version='0.3.2',
+    version='0.3.3',
     description='Python library to interact with the Arup Compute API',
     url='https://gitlab.arup.com/arupcompute/arupcomputepy',
     author='Hugh Groves',
