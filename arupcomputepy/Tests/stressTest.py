@@ -44,7 +44,7 @@ def MultiCall(number):
     start_time = time.time()
 
     token = arupcomputepy.AcquireNewAccessTokenDeviceFlow()
-    responses = arupcomputepy.MakeCalculationRequest(calcId, jobnumber, token, isBatch=True, variables=variables, resultType="mini") # did batch execution so we get a list of responses instead of just one
+    responses = arupcomputepy.MakeCalculationRequest(calcId, jobnumber, token, isBatch=True, variables=variables, resultType="simple") # did batch execution so we get a list of responses instead of just one
 
     calcTime = time.time() - start_time
     calctimePer = calcTime / number

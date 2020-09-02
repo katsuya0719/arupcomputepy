@@ -62,6 +62,9 @@ def MakeGenericRequest(endpoint, accessToken, body=None, timeout=None, useArupPr
     headers = {'Authorization': 'Bearer %s' % accessToken}
 
     url = root + '/' + endpoint
+
+    print(url)
+    print(body)
     
     if useArupProxy:
 
@@ -81,7 +84,14 @@ def MakeGenericRequest(endpoint, accessToken, body=None, timeout=None, useArupPr
         else:
             r = requests.get(url, headers=headers, timeout=timeout)
 
-    r.raise_for_status() # check for failed responses e.g. 400
+    try:
+        r.raise_for_status() # check for failed responses e.g. 400
+    except requests.exceptions.HTTPError as e:
+        if r.text:
+            print('Been hit')
+            raise requests.exceptions.HTTPError('ArupCompute error: {} HTTP error: {}'.format(r.text, str(e)))
+        else:
+           raise e
 
     if '<title>Sign in to your account</title>'.encode('utf-8') in r.content:
         raise SystemError('Connection has been unsuccessful, check authentication and / or proxy requirements. If unsuccessful raise an issue at https://gitlab.arup.com/arupcompute/arupcomputepy/issues')
