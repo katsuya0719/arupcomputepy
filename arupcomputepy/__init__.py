@@ -62,9 +62,6 @@ def MakeGenericRequest(endpoint, accessToken, body=None, timeout=None, useArupPr
     headers = {'Authorization': 'Bearer %s' % accessToken}
 
     url = root + '/' + endpoint
-
-    print(url)
-    print(body)
     
     if useArupProxy:
 
@@ -88,7 +85,6 @@ def MakeGenericRequest(endpoint, accessToken, body=None, timeout=None, useArupPr
         r.raise_for_status() # check for failed responses e.g. 400
     except requests.exceptions.HTTPError as e:
         if r.text:
-            print('Been hit')
             raise requests.exceptions.HTTPError('ArupCompute error: {} HTTP error: {}'.format(r.text, str(e)))
         else:
            raise e
