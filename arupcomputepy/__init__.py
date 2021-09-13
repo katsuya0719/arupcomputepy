@@ -5,6 +5,7 @@ import appdirs
 import os
 import atexit
 import logging
+import arupcomputepy.pdf
 
 # Use global variable to enable this to be switched for debugging purposes
 # If you want to use the dev server in your script include the following lines
