@@ -101,6 +101,13 @@ def SerializeCache(token_cache, cache):
 
 
 def AcquireNewAccessTokenDeviceFlow(refreshToken=None, verbose=False):
+    return PublicClientApplicationFlow("device_flow", refreshToken, verbose)
+
+def AcquireNewAccessTokenInteractiveFlow(refreshToken=None, verbose=False):
+    return PublicClientApplicationFlow("interactive", refreshToken, verbose)
+
+
+def PublicClientApplicationFlow(mode, refreshToken=None, verbose=False):
 
     tenant = '4ae48b41-0137-4599-8661-fc641fe77bea'
     clientId = '765d8aec-a87c-4d7d-be95-b3456ef8b732'
@@ -136,12 +143,15 @@ def AcquireNewAccessTokenDeviceFlow(refreshToken=None, verbose=False):
         result = app.acquire_token_silent(scopes, account=chosen)
 
     if not result:
-        # So no suitable token exists in cache. Let's get a new one from AAD.
-        flow = app.initiate_device_flow(scopes=scopes)
-        print(flow["message"])
-        # Ideally you should wait here, in order to save some unnecessary polling
-        # input("Press Enter after you successfully login from another device...")
-        result = app.acquire_token_by_device_flow(flow)  # By default it will block
+        if(mode == "device_flow"):
+            # So no suitable token exists in cache. Let's get a new one from AAD.
+            flow = app.initiate_device_flow(scopes=scopes)
+            print(flow["message"])
+            # Ideally you should wait here, in order to save some unnecessary polling
+            # input("Press Enter after you successfully login from another device...")
+            result = app.acquire_token_by_device_flow(flow)  # By default it will block
+        else:
+            result = app.acquire_token_interactive(scopes=scopes)
 
     if "access_token" in result:
         if cache.has_state_changed:
@@ -175,6 +185,21 @@ def AcquireNewAccessTokenClientSecretFlow(clientId, clientSecret):
         print(result.get("error"))
         print(result.get("error_description"))
         print(result.get("correlation_id"))  # You may need this when reporting a bug
+
+def AcquireNewAccessTokenEnvVarClientSecretFlow(clientIdEnvVar="COMPUTE_CLIENTID", clientSecretEnvVar="COMPUTE_CLIENTSECRET"):
+    id = os.getenv(clientIdEnvVar)
+    secret = os.getenv(clientSecretEnvVar)
+
+    return AcquireNewAccessTokenClientSecretFlow(id, secret)
+
+def AcquireNewAccessTokenEnvVarClientSecretFallbackInteractive(clientIdEnvVar="COMPUTE_CLIENTID", clientSecretEnvVar="COMPUTE_CLIENTSECRET"):
+    id = os.getenv(clientIdEnvVar)
+    secret = os.getenv(clientSecretEnvVar)
+
+    if((id == None) or (secret == None)):
+        return AcquireNewAccessTokenInteractiveFlow()
+    else:
+        return AcquireNewAccessTokenClientSecretFlow(id, secret)
 
 def test():
     print('arupcomputepy has installed correctly')
