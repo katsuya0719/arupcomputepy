@@ -6,7 +6,7 @@ This is a library for making calls to [Arup Compute](https://arupcompute.azurewe
 
 Once you have python installed on your computer, you can install arupcomputepy by calling pip:
 
-`pip install https://gitlab.arup.com/arupcompute/arupcomputepy/repository/archive.zip?ref=master`
+`pip install git+ssh://git@github.com/arup-group/arupcomputepy.git`
 
 This will install the latest version of arupcomputepy, run the command again to get up to date.
 
@@ -23,7 +23,7 @@ The expected outcome is
 
 ## Usage
 
-See the [examples](https://gitlab.arup.com/arupcompute/arupcomputepy/tree/master/arupcomputepy/Examples) folder
+See the [examples](https://github.com/arup-group/arupcomputepy/tree/master/arupcomputepy/Examples) folder
 
 ## Authentication
 
