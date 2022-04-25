@@ -1,7 +1,7 @@
 import arupcomputepy
 import json
 
-calcID = 2069141 # Veracity
+calcID = 2069141 # Veracity v0.1.6 QueryDatabase > VeracityDB Query
 jobNumber = '00000-00' # for testing only - please use a real job number
 
 variables = {

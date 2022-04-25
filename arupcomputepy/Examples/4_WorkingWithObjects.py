@@ -6,12 +6,12 @@ def VariableDict(Symbol,Units,Description,HTMLLatex,Value):
         "Symbol": Symbol,
         "Units": Units,
         "Description": Description,
-        "HTMLLatex": HTMLLatex,
+        "Latex": HTMLLatex,
         "Value": Value
     }
     return vd
 
-calcID = 268654 # DesignCheck2 v.12.5.1-beta3795 Calculation with HTML - variables
+calcID = 5049828 # DesignCheck2 v.131.1.0 Framework > Calculation with HTML - variables
 jobNumber = '00000-00' # for testing only - please use a real job number
 
 a = VariableDict('a','mm','I am a','a_{a}',3)
@@ -21,7 +21,7 @@ dcVariables = [a,b]
 acVariables = {
     'calculatedVariable': 'c',
     'expression': 'a_{a} * Pow(b_{b},3)',
-    'variables': 'sausage'
+    'variables': dcVariables
 }
 
 print(acVariables)

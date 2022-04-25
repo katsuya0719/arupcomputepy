@@ -1,7 +1,7 @@
 import arupcomputepy
 import json
 
-calcID = 2026567 # SlabOverallDepth v63.0.1
+calcID = 2026567 # DesignCheck2 v131.1.0 Structural.EC.Calcs.Concrete > Slab overall depth
 jobNumber = '00000-00' # for testing only - please use a real job number
 
 l_input = [5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10]

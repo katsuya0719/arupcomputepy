@@ -2,7 +2,7 @@ import arupcomputepy
 import json
 import numpy as np
 
-calcID = 2039369 # Two-pile pile cap check (UK NA) v63.0.2
+calcID = 5050533 # DesignCheck2 v131.1.0 Structural.EC.Calcs.Concrete.Pilecap.NA_UK > Two-pile pile cap check (UK NA) v63.0.2
 jobNumber = '00000-00' # for testing only - please use a real job number
 
 accessToken = arupcomputepy.AcquireNewAccessTokenDeviceFlow()
@@ -22,7 +22,7 @@ while True:
         'ID' : [x for x in range(1,batch_size+1)],
         'N_layers_tens' : [2] * batch_size,
         'S_vert_tens' : [50] * batch_size,
-        'Dia_Tens' : [32] * batch_size,
+        'phi_l' : [32] * batch_size,
         'n_bars' : [8] * batch_size,
         's_piles' : [1800] * batch_size,
         'w_col' : [700] * batch_size,

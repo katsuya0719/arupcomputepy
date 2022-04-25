@@ -4,7 +4,7 @@ import json
 import tempfile
 import os
 
-calcID = 166599 # DesignCheck2 v3.8.0 Examples.SimpleCalculation
+calcID = 5049731 # DesignCheck2 v131.1.0 Examples.SimpleCalculation
 jobNumber = '00000-00' # for testing only - please use a real job number
 
 variables = {

@@ -1,13 +1,12 @@
 import arupcomputepy
 import json
 
-calcID = 2038806  # Sample Library v2.1.62 Basic Calc
+calcID = 2081643  # Sample Library v2.1.60 Examples.BasicUse > Basic Calc
 jobNumber = '00000-00' # for testing only - please use a real job number
 
 variables = {
-    'ID': "test",
-    'A': 1,
-    'B': 2
+    'a': 1,
+    'b': 2
 }
 
 # To call ArupCompute we must get an access token

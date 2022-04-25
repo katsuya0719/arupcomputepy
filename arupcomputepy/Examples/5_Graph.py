@@ -1,8 +1,9 @@
 import arupcomputepy
 import json
 import matplotlib.pyplot as plt
+import os
 
-calcID = 2026567 # SlabOverallDepth v63.0.1
+calcID = 2026567 # DesignCheck2 v131.1.0 Structural.EC.Calcs.Concrete > Slab overall depth
 jobNumber = '00000-00' # for testing only - please use a real job number
 
 # Note that we use lists of input data for a batch calculation
@@ -25,8 +26,6 @@ outputs = json.loads(response['output'])
 x = json.loads(response['body'])['l']
 y = [output['arupComputeResultItems'][0]['value'] for output in outputs]
 
-
-
 ax = plt.axes()
 
 ax.plot(x, y)
@@ -34,4 +33,5 @@ plt.xlabel('span (m)')
 plt.ylabel('depth (mm)')
 
 # Save figure
-plt.savefig('arupcomputepy/Examples/ExampleOutput/GraphExample.png')
+path = os.path.join(tempfile.gettempdir(),'arupcomputepy','GraphExample.png') # tempoary file location for demonstration purposes
+plt.savefig(path)
