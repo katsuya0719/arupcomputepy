@@ -1,6 +1,8 @@
 # arupcomputepy
 
-This is a library for making calls to [Arup Compute](https://arupcompute.azurewebsites.net/about) via the [Arup Compute API](https://arupcompute.azurewebsites.net/apidocs).
+This is a library for making calls to [Arup Compute](https://compute.arup.digital/).
+
+Full python documentation can be found [on the ArupCompute documentation site](https://compute.arup.digital/docs/python/).
 
 ## Installation
 
